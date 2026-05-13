@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx expo *)",
+      "Bash(npx tsc *)",
+      "Bash(npx expo-doctor *)",
+      "Bash(npm uninstall *)",
+      "Bash(npm install *)"
+    ]
+  }
+}
