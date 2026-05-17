@@ -8,7 +8,6 @@ export default function TabLayout() {
   return (
     <NativeTabs
       tintColor={c.brand.accent}
-      blurEffect="systemChromeMaterial"
       minimizeBehavior="onScrollDown">
       <NativeTabs.Trigger name="(hoje)">
         <Icon sf={{ default: 'book.closed', selected: 'book.closed.fill' }} />

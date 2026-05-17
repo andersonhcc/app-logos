@@ -2,11 +2,14 @@ import '../global.css';
 
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
+import { SQLiteProvider } from 'expo-sqlite';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
+
+import { DB_NAME, migrate } from '@/lib/db';
 
 import {
   EBGaramond_500Medium,
@@ -19,9 +22,6 @@ import { CrimsonPro_500Medium_Italic } from '@expo-google-fonts/crimson-pro';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { colors } from '@/theme';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
 
 const navLight = {
   ...DefaultTheme,
@@ -63,10 +63,14 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <KeyboardProvider>
           <ThemeProvider value={colorScheme === 'dark' ? navDark : navLight}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            </Stack>
-            <StatusBar style="auto" />
+            <SQLiteProvider databaseName={DB_NAME} onInit={migrate}>
+              <Stack>
+                <Stack.Screen name="index" options={{ headerShown: false }} />
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+              </Stack>
+              <StatusBar style="auto" />
+            </SQLiteProvider>
           </ThemeProvider>
         </KeyboardProvider>
       </SafeAreaProvider>

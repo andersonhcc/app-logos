@@ -25,10 +25,13 @@ const styles: Record<Variant, { container: string; label: string }> = {
   },
 };
 
-export function Button({ label, variant = 'primary', onPress, ...rest }: Props) {
+export function Button({ label, variant = 'primary', onPress, disabled, ...rest }: Props) {
   return (
     <Pressable
-      className={`h-12 px-5 rounded-xl items-center justify-center ${styles[variant].container}`}
+      disabled={disabled}
+      className={`h-12 px-5 rounded-xl items-center justify-center ${styles[variant].container} ${
+        disabled ? 'opacity-40' : ''
+      }`}
       onPress={(e) => {
         if (process.env.EXPO_OS === 'ios') {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
