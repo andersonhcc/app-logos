@@ -62,6 +62,7 @@ Crie um arquivo `.env.local` na raiz:
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
 EXPO_PUBLIC_SUPABASE_ANON_KEY=sua-chave-anon
+EXPO_PUBLIC_PRIVACY_EMAIL=privacidade@seu-dominio.com
 ```
 
 Gere e abra uma build de desenvolvimento:

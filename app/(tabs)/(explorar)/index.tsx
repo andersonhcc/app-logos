@@ -1,4 +1,5 @@
-import { ScrollView, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Pressable, ScrollView, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
 
@@ -10,6 +11,8 @@ const collections = [
 ];
 
 export default function ExplorarScreen() {
+  const router = useRouter();
+
   return (
     <ScrollView
       className="flex-1 bg-bg-base"
@@ -31,6 +34,15 @@ export default function ExplorarScreen() {
           </Text>
         </View>
       ))}
+      <Pressable
+        accessibilityRole="link"
+        hitSlop={12}
+        onPress={() => router.push('/privacy')}
+        className="self-center px-3 py-2 mt-2">
+        <Text variant="caption" className="text-fg-tertiary">
+          Privacidade
+        </Text>
+      </Pressable>
     </ScrollView>
   );
 }

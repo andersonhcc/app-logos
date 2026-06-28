@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   Platform,
+  Pressable,
   ScrollView,
   View,
 } from 'react-native';
@@ -18,6 +19,7 @@ import { formatReference } from '@/lib/bible';
 import { generateDaily, saveDailyContent } from '@/lib/generate-daily';
 import { shareReflection } from '@/lib/share';
 import { shareCardImage } from '@/lib/share-image';
+import { reportGeneratedContent } from '@/lib/report-content';
 import { useBibleBootstrap } from '@/lib/use-bible-bootstrap';
 import { useThemeColors } from '@/theme';
 
@@ -31,7 +33,12 @@ export default function HojeScreen() {
 
   const [genState, setGenState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [genError, setGenError] = useState<string | null>(null);
+  const [reportState, setReportState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const generatingFor = useRef<string | null>(null);
+
+  useEffect(() => {
+    setReportState('idle');
+  }, [plan?.current_day, plan?.id]);
 
   // Auto-generate reflection + prayer when missing
   useEffect(() => {
@@ -91,6 +98,38 @@ export default function HojeScreen() {
     } else {
       shareImage();
     }
+  };
+
+  const submitReport = async () => {
+    if (!plan || !theme || !passage || !dayRecord?.reflection || !dayRecord.prayer) return;
+
+    setReportState('sending');
+    try {
+      await reportGeneratedContent({
+        theme: theme.label,
+        reference: formatReference(passage),
+        day: plan.current_day,
+        totalDays: plan.days_count,
+        reflection: dayRecord.reflection,
+        prayer: dayRecord.prayer,
+      });
+      setReportState('sent');
+      Alert.alert('Obrigado', 'O conteúdo foi sinalizado para revisão.');
+    } catch {
+      setReportState('idle');
+      Alert.alert('Não foi possível enviar', 'Tente novamente em alguns instantes.');
+    }
+  };
+
+  const onReportPress = () => {
+    Alert.alert(
+      'Sinalizar este conteúdo?',
+      'Isso nos ajuda a revisar conteúdos inadequados ou incorretos.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sinalizar', onPress: () => void submitReport() },
+      ]
+    );
   };
 
   if (loading || !bibleReady) {
@@ -204,6 +243,24 @@ export default function HojeScreen() {
             </Text>
           )}
         </View>
+
+        {dayRecord?.reflection && dayRecord.prayer && passage && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Sinalizar conteúdo gerado"
+            disabled={reportState !== 'idle'}
+            hitSlop={12}
+            onPress={onReportPress}
+            className="self-center px-3 py-1">
+            <Text variant="caption" className="text-fg-tertiary">
+              {reportState === 'sending'
+                ? 'Enviando…'
+                : reportState === 'sent'
+                  ? 'Conteúdo sinalizado'
+                  : 'Sinalizar conteúdo'}
+            </Text>
+          </Pressable>
+        )}
 
         <View className="gap-3">
           {!isCompleted && <Button label="Marcar como lido" onPress={completeToday} />}
