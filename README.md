@@ -1,50 +1,109 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img src="assets/app-icon.icon/Assets/icon.png" width="128" alt="Ícone do Logos AI" />
+  <h1>Logos AI</h1>
+  <p><strong>Leitura bíblica diária, reflexão e oração em uma experiência pessoal.</strong></p>
+  <p>Aplicativo mobile que cria planos de leitura por tema, organiza a jornada diária e gera conteúdo devocional com apoio de IA.</p>
+</div>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Visão geral
 
-## Get started
+O Logos AI foi criado para tornar a leitura bíblica mais consistente e contextual. No onboarding, o usuário escolhe um tema, define a duração do plano e configura um lembrete. A partir disso, o aplicativo apresenta diariamente uma passagem, uma reflexão e uma oração.
 
-1. Install dependencies
+Os textos bíblicos são armazenados no próprio dispositivo com SQLite. Isso mantém as passagens disponíveis localmente, enquanto a geração dos planos e conteúdos personalizados é feita por funções remotas.
 
-   ```bash
-   npm install
-   ```
+## Telas
 
-2. Start the app
+<div align="center">
+  <img src="assets/simulator-1.png" width="360" alt="Tela Hoje com passagem e reflexão diária" />
+  &nbsp;&nbsp;
+  <img src="assets/simulator-2.png" width="360" alt="Tela Explorar com coleções de leituras" />
+</div>
 
-   ```bash
-   npx expo start
-   ```
+## Funcionalidades
 
-In the output, you'll find options to open the app in a
+- Planos de leitura por temas como ansiedade, gratidão, perdão, fé e esperança.
+- Passagem, reflexão e oração organizadas em uma jornada diária.
+- Geração de planos e conteúdo devocional por IA.
+- Bíblia armazenada localmente com Expo SQLite.
+- Lembretes diários por notificações locais.
+- Temas claro, escuro e automático.
+- Compartilhamento da reflexão como texto ou imagem.
+- Área de exploração com coleções e planos curados.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Tecnologias
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- React Native 0.81 e React 19
+- Expo 54 e Expo Router 6
+- TypeScript em modo estrito
+- NativeWind e Tailwind CSS
+- Expo SQLite e React Native MMKV
+- Supabase Edge Functions
+- Expo Notifications
 
-## Get a fresh project
+## Executando localmente
 
-When you're ready, run:
+### Pré-requisitos
+
+- Node.js e npm
+- Xcode para executar no iOS
+- Android Studio para executar no Android
+- Projeto Supabase com as funções `generate-plan` e `generate-daily`
+
+### Instalação
 
 ```bash
-npm run reset-project
+git clone <url-do-repositorio>
+cd app-logos
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Crie um arquivo `.env.local` na raiz:
 
-## Learn more
+```env
+EXPO_PUBLIC_SUPABASE_URL=https://seu-projeto.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=sua-chave-anon
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Gere e abra uma build de desenvolvimento:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+```bash
+npm run ios
+# ou
+npm run android
+```
 
-## Join the community
+Para iniciar novamente o Metro após a primeira build:
 
-Join our community of developers creating universal apps.
+```bash
+npm start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Outros comandos úteis:
+
+```bash
+npm run web          # inicia a versão web
+npm run lint         # executa o ESLint
+npm run fetch:bible  # baixa novamente o dataset bíblico
+```
+
+## Estrutura do projeto
+
+```text
+app/          Rotas, onboarding e telas principais
+components/   Componentes visuais reutilizáveis
+hooks/        Hooks compartilhados
+lib/          Bíblia, banco local, planos, IA e notificações
+theme/        Cores, tipografia, espaçamento e tokens
+assets/       Ícones, capturas e dataset bíblico
+scripts/      Utilitários executados durante o desenvolvimento
+```
+
+## Dados bíblicos e licença
+
+O arquivo `assets/bible/aa.json` é incorporado ao aplicativo e indexado no SQLite durante a primeira execução. Ele pode ser atualizado com `npm run fetch:bible`.
+
+> A fonte padrão usada pelo script é um dataset comunitário com licença não esclarecida. Antes de distribuir o aplicativo, substitua-o por uma tradução com licença compatível e documentada.
+
+## Status
+
+Projeto em desenvolvimento. Consulte [AGENTS.md](AGENTS.md) para as convenções de contribuição do repositório.
