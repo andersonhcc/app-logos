@@ -33,6 +33,10 @@ yarn-error.*
 # local env files
 .env*.local
 
+# Supabase CLI
+supabase/.branches/
+supabase/.temp/
+
 # typescript
 *.tsbuildinfo
 
@@ -41,3 +45,7 @@ app-example
 # generated native folders
 /ios
 /android
+
+# plan
+generate-plan
+supabase

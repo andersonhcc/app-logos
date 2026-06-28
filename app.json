@@ -4,21 +4,21 @@
     "slug": "logos-ai",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/app-icon.icon/Assets/icon.png",
     "scheme": "logosai",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.logosai.app"
+      "bundleIdentifier": "com.logosai.app",
+      "icon": "./assets/app-icon.icon"
     },
     "android": {
       "package": "com.logosai.app",
       "adaptiveIcon": {
         "backgroundColor": "#FAF6EE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/android-icon.png",
+        "monochromeImage": "./assets/android-icon.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -42,7 +42,15 @@
           }
         }
       ],
-      "react-native-bottom-tabs"
+      "react-native-bottom-tabs",
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#1C2D4A"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
