@@ -6,12 +6,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
-import { THEMES, type ThemeId } from '@/lib/themes';
+import { getTheme, THEMES, type ThemeId } from '@/lib/themes';
+import { useI18n } from '@/lib/i18n';
 import { useThemeColors } from '@/theme';
 
 export default function ThemeScreen() {
   const router = useRouter();
   const c = useThemeColors();
+  const { locale, t: translate } = useI18n();
   const [selected, setSelected] = useState<ThemeId | null>(null);
 
   return (
@@ -19,15 +21,16 @@ export default function ThemeScreen() {
       <View className="flex-1 px-6 pt-6">
         <View className="gap-2 mb-6">
           <Text variant="caption" className="text-fg-tertiary uppercase tracking-widest">
-            Passo 1 de 2
+            {translate('onboarding.themeEyebrow')}
           </Text>
           <Text variant="title" className="text-fg">
-            O que está no seu coração hoje?
+            {translate('onboarding.themeTitle')}
           </Text>
         </View>
 
         <ScrollView contentContainerStyle={{ paddingBottom: 24, gap: 12 }}>
           {THEMES.map((t) => {
+            const localized = getTheme(t.id, locale)!;
             const isSelected = selected === t.id;
             return (
               <Pressable
@@ -50,10 +53,10 @@ export default function ThemeScreen() {
                 </View>
                 <View className="flex-1">
                   <Text variant="subtitle" className="text-fg">
-                    {t.label}
+                    {localized.label}
                   </Text>
                   <Text variant="bodySmall" className="text-fg-secondary">
-                    {t.description}
+                    {localized.description}
                   </Text>
                 </View>
               </Pressable>
@@ -63,7 +66,7 @@ export default function ThemeScreen() {
 
         <View className="pb-4">
           <Button
-            label="Continuar"
+            label={translate('common.continue')}
             disabled={!selected}
             onPress={() =>
               selected &&

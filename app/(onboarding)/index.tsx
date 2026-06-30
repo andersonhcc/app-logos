@@ -4,9 +4,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useI18n } from '@/lib/i18n';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { t } = useI18n();
 
   return (
     <SafeAreaView className="flex-1 bg-bg-base">
@@ -16,14 +18,13 @@ export default function WelcomeScreen() {
             Logos AI
           </Text>
           <Text variant="hero" className="text-fg">
-            Um caminho diário pela Palavra.
+            {t('onboarding.tagline')}
           </Text>
           <Text variant="body" className="text-fg-secondary">
-            Escolha um tema do seu coração e receba um plano de leitura com versículos,
-            reflexão e oração — feito pra você.
+            {t('onboarding.intro')}
           </Text>
         </View>
-        <Button label="Começar" onPress={() => router.push('/(onboarding)/theme')} />
+        <Button label={t('onboarding.start')} onPress={() => router.push('/(onboarding)/theme')} />
       </View>
     </SafeAreaView>
   );

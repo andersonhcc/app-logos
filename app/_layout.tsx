@@ -10,6 +10,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 
 import { DB_NAME, migrate } from '@/lib/db';
+import { LocaleProvider, useI18n } from '@/lib/i18n';
+import { assertProductionLinks } from '@/lib/links';
 
 import {
   EBGaramond_500Medium,
@@ -21,6 +23,8 @@ import { CrimsonPro_500Medium_Italic } from '@expo-google-fonts/crimson-pro';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { colors } from '@/theme';
+
+assertProductionLinks();
 
 
 const navLight = {
@@ -47,8 +51,9 @@ const navDark = {
   },
 };
 
-export default function RootLayout() {
+function AppContent() {
   const colorScheme = useColorScheme();
+  const { t } = useI18n();
   const [fontsLoaded] = useFonts({
     EBGaramond_500Medium,
     EBGaramond_500Medium_Italic,
@@ -71,9 +76,13 @@ export default function RootLayout() {
                 <Stack.Screen
                   name="privacy"
                   options={{
-                    title: 'Privacidade',
+                    title: t('privacy.title'),
                     headerBackButtonDisplayMode: 'minimal',
                   }}
+                />
+                <Stack.Screen
+                  name="settings"
+                  options={{ title: t('settings.title'), headerBackButtonDisplayMode: 'minimal' }}
                 />
               </Stack>
               <StatusBar style="auto" />
@@ -83,4 +92,8 @@ export default function RootLayout() {
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
+}
+
+export default function RootLayout() {
+  return <LocaleProvider><AppContent /></LocaleProvider>;
 }

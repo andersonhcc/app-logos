@@ -22,10 +22,13 @@ import { shareCardImage } from '@/lib/share-image';
 import { reportGeneratedContent } from '@/lib/report-content';
 import { useBibleBootstrap } from '@/lib/use-bible-bootstrap';
 import { useThemeColors } from '@/theme';
+import { useI18n } from '@/lib/i18n';
+import { requestReviewAfterCompletedReading } from '@/lib/store-review';
 
 export default function HojeScreen() {
   const c = useThemeColors();
   const db = useSQLiteContext();
+  const { locale, t } = useI18n();
   const { ready: bibleReady } = useBibleBootstrap();
   const { loading, plan, theme, dayRecord, passage, completeToday, reload } =
     useActivePlan();
@@ -59,6 +62,7 @@ export default function HojeScreen() {
           passageText: passage.verses.map((v) => v.text).join(' '),
           day: plan.current_day,
           totalDays: plan.days_count,
+          locale: plan.locale,
         });
         await saveDailyContent(db, plan.id, plan.current_day, content);
         await reload();
@@ -79,15 +83,15 @@ export default function HojeScreen() {
       try {
         await shareCardImage(cardRef);
       } catch (e) {
-        Alert.alert('Erro ao compartilhar', e instanceof Error ? e.message : String(e));
+        Alert.alert(t('today.shareError'), e instanceof Error ? e.message : String(e));
       }
     };
-    const shareText = () => shareReflection({ passage, reflection, theme });
+    const shareText = () => shareReflection({ passage, reflection, theme, locale: plan?.locale ?? locale });
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
         {
-          options: ['Cancelar', 'Compartilhar imagem', 'Compartilhar texto'],
+          options: [t('common.cancel'), locale === 'en' ? 'Share image' : 'Compartilhar imagem', locale === 'en' ? 'Share text' : 'Compartilhar texto'],
           cancelButtonIndex: 0,
         },
         (i) => {
@@ -112,22 +116,23 @@ export default function HojeScreen() {
         totalDays: plan.days_count,
         reflection: dayRecord.reflection,
         prayer: dayRecord.prayer,
+        locale: plan.locale,
       });
       setReportState('sent');
-      Alert.alert('Obrigado', 'O conteúdo foi sinalizado para revisão.');
+      Alert.alert(t('today.thanks'), t('today.reportSuccess'));
     } catch {
       setReportState('idle');
-      Alert.alert('Não foi possível enviar', 'Tente novamente em alguns instantes.');
+      Alert.alert(t('today.submitError'), t('today.tryAgain'));
     }
   };
 
   const onReportPress = () => {
     Alert.alert(
-      'Sinalizar este conteúdo?',
-      'Isso nos ajuda a revisar conteúdos inadequados ou incorretos.',
+      t('today.reportTitle'),
+      t('today.reportBody'),
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Sinalizar', onPress: () => void submitReport() },
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('today.reportAction'), onPress: () => void submitReport() },
       ]
     );
   };
@@ -144,10 +149,10 @@ export default function HojeScreen() {
     return (
       <View className="flex-1 items-center justify-center px-6 bg-bg-base">
         <Text variant="title" className="text-fg text-center mb-2">
-          Nenhum plano ativo
+          {t('today.noPlan')}
         </Text>
         <Text variant="body" className="text-fg-secondary text-center">
-          Crie um plano de leitura pra começar.
+          {t('today.createPlan')}
         </Text>
       </View>
     );
@@ -156,6 +161,12 @@ export default function HojeScreen() {
   const isCompleted = !!dayRecord?.completed_at;
   const isLastDay = plan.current_day >= plan.days_count && isCompleted;
   const isGenerating = genState === 'loading';
+  const onCompleteToday = async () => {
+    await completeToday();
+    if (genState === 'idle') {
+      void requestReviewAfterCompletedReading();
+    }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -166,7 +177,7 @@ export default function HojeScreen() {
         <View className="gap-3">
           <View className="flex-row items-center justify-between">
             <Text variant="caption" className="text-fg-tertiary uppercase tracking-widest">
-              {theme.label} · Dia {plan.current_day} de {plan.days_count}
+              {theme.label} · {t('today.day', { day: plan.current_day, total: plan.days_count })}
             </Text>
             {passage && <GlassPill label={formatReference(passage)} />}
           </View>
@@ -182,7 +193,7 @@ export default function HojeScreen() {
             className="rounded-2xl bg-bg-elevated border border-border p-5 gap-3"
             style={{ borderCurve: 'continuous' }}>
             <Text variant="subtitle" className="text-brand">
-              Passagem completa
+              {t('today.reading')}
             </Text>
             <Text variant="citation" className="text-fg" selectable>
               {passage.verses
@@ -196,7 +207,7 @@ export default function HojeScreen() {
           className="rounded-2xl bg-bg-elevated border border-border p-5 gap-3"
           style={{ borderCurve: 'continuous' }}>
           <Text variant="subtitle" className="text-brand">
-            Reflexão
+            {t('today.reflection')}
           </Text>
           {dayRecord?.reflection ? (
             <Text variant="body" className="text-fg" selectable>
@@ -206,16 +217,16 @@ export default function HojeScreen() {
             <View className="flex-row items-center gap-3">
               <ActivityIndicator color={c.brand.primary} />
               <Text variant="body" className="text-fg-secondary">
-                Gerando reflexão personalizada…
+                {t('today.generatingReflection')}
               </Text>
             </View>
           ) : genError ? (
             <Text variant="body" className="text-fg-secondary">
-              Não foi possível gerar agora. {genError}
+              {t('today.generationFailed', { error: genError })}
             </Text>
           ) : (
             <Text variant="body" className="text-fg-secondary">
-              Preparando…
+              {locale === 'en' ? 'Preparing…' : 'Preparando…'}
             </Text>
           )}
         </View>
@@ -224,7 +235,7 @@ export default function HojeScreen() {
           className="rounded-2xl bg-bg-elevated border border-border p-5 gap-3"
           style={{ borderCurve: 'continuous' }}>
           <Text variant="subtitle" className="text-brand">
-            Oração
+            {t('today.prayer')}
           </Text>
           {dayRecord?.prayer ? (
             <Text variant="citation" className="text-fg" selectable>
@@ -234,12 +245,12 @@ export default function HojeScreen() {
             <View className="flex-row items-center gap-3">
               <ActivityIndicator color={c.brand.primary} />
               <Text variant="body" className="text-fg-secondary">
-                Gerando oração…
+                {t('today.generatingPrayer')}
               </Text>
             </View>
           ) : (
             <Text variant="body" className="text-fg-secondary">
-              {genError ? '—' : 'Preparando…'}
+              {genError ? '—' : locale === 'en' ? 'Preparing…' : 'Preparando…'}
             </Text>
           )}
         </View>
@@ -247,34 +258,34 @@ export default function HojeScreen() {
         {dayRecord?.reflection && dayRecord.prayer && passage && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Sinalizar conteúdo gerado"
+            accessibilityLabel={t('today.report')}
             disabled={reportState !== 'idle'}
             hitSlop={12}
             onPress={onReportPress}
             className="self-center px-3 py-1">
             <Text variant="caption" className="text-fg-tertiary">
               {reportState === 'sending'
-                ? 'Enviando…'
+                ? locale === 'en' ? 'Sending…' : 'Enviando…'
                 : reportState === 'sent'
-                  ? 'Conteúdo sinalizado'
-                  : 'Sinalizar conteúdo'}
+                  ? t('today.reported')
+                  : t('today.report')}
             </Text>
           </Pressable>
         )}
 
         <View className="gap-3">
-          {!isCompleted && <Button label="Marcar como lido" onPress={completeToday} />}
+          {!isCompleted && <Button label={t('today.markRead')} onPress={onCompleteToday} />}
           {passage && (
-            <Button label="Compartilhar" variant="secondary" onPress={onSharePress} />
+            <Button label={t('today.share')} variant="secondary" onPress={onSharePress} />
           )}
           {isCompleted && !isLastDay && (
             <Text variant="body" className="text-fg-secondary text-center">
-              Você concluiu este dia. Volte amanhã pra próxima leitura.
+              {t('today.dayDone')}
             </Text>
           )}
           {isLastDay && (
             <Text variant="title" className="text-fg text-center">
-              Plano concluído.
+              {t('today.planDone')}
             </Text>
           )}
         </View>

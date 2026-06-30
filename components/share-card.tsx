@@ -4,6 +4,7 @@ import { View } from 'react-native';
 import { formatReference, type Passage } from '@/lib/bible';
 import type { ThemeDef } from '@/lib/themes';
 import { palette } from '@/theme';
+import { useI18n } from '@/lib/i18n';
 
 import { Text } from './ui/text';
 
@@ -22,6 +23,7 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard(
   { passage, reflection, theme },
   ref
 ) {
+  const { t } = useI18n();
   const verseText = passage.verses
     .map((v) => v.text.replace(/\s+/g, ' ').trim())
     .join(' ');
@@ -109,7 +111,7 @@ export const ShareCard = forwardRef<View, Props>(function ShareCard(
           Logos AI
         </Text>
         <Text style={{ color: palette.ink[100], fontSize: 11 }}>
-          devocional diário
+          {t('share.devotional')}
         </Text>
       </View>
     </View>

@@ -11,7 +11,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.logosai.app",
-      "icon": "./assets/app-icon.icon"
+      "icon": "./assets/app-icon.icon",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.logosai.app",
@@ -30,6 +33,15 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      [
+        "expo-localization",
+        {
+          "supportedLocales": {
+            "ios": ["pt-BR", "en"],
+            "android": ["pt-BR", "en"]
+          }
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -55,6 +67,19 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "isTestFlight": false,
+      "eas": {
+        "projectId": "3ab8c457-ba28-43bc-a02e-801760483963"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3ab8c457-ba28-43bc-a02e-801760483963"
     }
   }
 }

@@ -2,9 +2,11 @@ import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
 
 import { bootstrapBible, isBibleBootstrapped, type RawBibleBook } from './bible';
+import { translate } from './i18n';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const rawBible: RawBibleBook[] = require('../assets/bible/aa.json');
+const portugueseBible: RawBibleBook[] = require('../assets/bible/pt-BR.json');
+const englishBible: RawBibleBook[] = require('../assets/bible/en.json');
 
 export function useBibleBootstrap() {
   const db = useSQLiteContext();
@@ -22,11 +24,11 @@ export function useBibleBootstrap() {
           setReady(true);
           return;
         }
-        if (!Array.isArray(rawBible) || rawBible.length === 0) {
-          setError('Bíblia não foi baixada. Rode `npm run fetch:bible` e reabra o app.');
+        if (!Array.isArray(portugueseBible) || !Array.isArray(englishBible)) {
+          setError(translate('bible.loadError'));
           return;
         }
-        await bootstrapBible(db, rawBible);
+        await bootstrapBible(db, { 'pt-BR': portugueseBible, en: englishBible });
         setReady(true);
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e));

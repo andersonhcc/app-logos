@@ -1,31 +1,27 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/ui/text';
+import { Button } from '@/components/ui/button';
 import { generatePlan, sanitizeDays, savePlanDays } from '@/lib/generate-plan';
 import { notifications } from '@/lib/notifications';
 import { createPlan } from '@/lib/plans';
-import { prefs } from '@/lib/preferences';
+import { PREF_KEYS, prefs, storage } from '@/lib/preferences';
 import { getTheme, type ThemeId } from '@/lib/themes';
 import { useBibleBootstrap } from '@/lib/use-bible-bootstrap';
 import { useThemeColors } from '@/theme';
+import { useI18n } from '@/lib/i18n';
 
 type Stage = 'bible' | 'plan' | 'ai' | 'done';
-
-const STAGE_LABEL: Record<Stage, string> = {
-  bible: 'Indexando a Bíblia no dispositivo…',
-  plan: 'Criando seu plano…',
-  ai: 'Gerando passagens personalizadas com IA…',
-  done: 'Pronto!',
-};
 
 export default function DoneScreen() {
   const router = useRouter();
   const db = useSQLiteContext();
   const c = useThemeColors();
+  const { locale, t } = useI18n();
   const { theme, days, notify, hour, minute } = useLocalSearchParams<{
     theme: ThemeId;
     days: string;
@@ -37,14 +33,17 @@ export default function DoneScreen() {
   const ran = useRef(false);
   const [stage, setStage] = useState<Stage>('bible');
   const [error, setError] = useState<string | null>(null);
+  const [processingAcknowledged, setProcessingAcknowledged] = useState(
+    () => storage.getBoolean(PREF_KEYS.remoteProcessingAcknowledged) ?? false,
+  );
 
   useEffect(() => {
-    if (!bibleReady || ran.current) return;
+    if (!bibleReady || !processingAcknowledged || ran.current) return;
     ran.current = true;
 
     (async () => {
       try {
-        const themeDef = getTheme(theme);
+        const themeDef = getTheme(theme, locale);
         const numDays = Number(days);
         if (!themeDef || !Number.isFinite(numDays)) {
           router.replace('/(onboarding)');
@@ -52,14 +51,14 @@ export default function DoneScreen() {
         }
 
         setStage('plan');
-        const planId = await createPlan(db, { theme: themeDef.id, days: numDays });
+        const planId = await createPlan(db, { theme: themeDef.id, days: numDays, locale });
         prefs.setActivePlanId(planId);
 
         setStage('ai');
-        const result = await generatePlan({ theme: themeDef.label, days: numDays });
+        const result = await generatePlan({ theme: themeDef.label, days: numDays, locale });
         const validDays = sanitizeDays(result.days);
         if (validDays.length === 0) {
-          throw new Error('Modelo não retornou passagens válidas');
+          throw new Error(locale === 'en' ? 'The model returned no valid passages' : 'Modelo não retornou passagens válidas');
         }
         await savePlanDays(db, planId, validDays);
 
@@ -77,9 +76,34 @@ export default function DoneScreen() {
         setError(e instanceof Error ? e.message : String(e));
       }
     })();
-  }, [bibleReady, db, days, hour, minute, notify, router, theme]);
+  }, [bibleReady, db, days, hour, locale, minute, notify, processingAcknowledged, router, theme]);
 
   const displayError = bibleError ?? error;
+
+  if (!processingAcknowledged) {
+    return (
+      <SafeAreaView className="flex-1 bg-bg-base">
+        <View className="flex-1 justify-center gap-6 px-6">
+          <Text variant="title" className="text-fg text-center">
+            {locale === 'en' ? 'Remote processing' : 'Processamento remoto'}
+          </Text>
+          <Text variant="body" className="text-fg-secondary text-center">
+            {locale === 'en'
+              ? 'To personalize your plan, the selected theme and Bible passages will be processed by Supabase and OpenAI.'
+              : 'Para personalizar seu plano, o tema escolhido e as passagens bíblicas serão processados pelo Supabase e pela OpenAI.'}
+          </Text>
+          <Pressable onPress={() => router.push('/privacy')}>
+            <Text variant="body" className="text-brand text-center">{t('settings.privacy')}</Text>
+          </Pressable>
+          <Button label={t('common.continue')} onPress={() => {
+            storage.set(PREF_KEYS.remoteProcessingAcknowledged, true);
+            setProcessingAcknowledged(true);
+          }} />
+          <Button label={t('common.cancel')} variant="ghost" onPress={() => router.back()} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-bg-base">
@@ -87,7 +111,7 @@ export default function DoneScreen() {
         {displayError ? (
           <>
             <Text variant="title" className="text-fg text-center">
-              Erro ao preparar
+              {locale === 'en' ? 'Unable to prepare' : 'Erro ao preparar'}
             </Text>
             <Text variant="body" className="text-fg-secondary text-center">
               {displayError}
@@ -97,10 +121,10 @@ export default function DoneScreen() {
           <>
             <ActivityIndicator color={c.brand.primary} />
             <Text variant="title" className="text-fg text-center">
-              Preparando sua leitura…
+              {t('onboarding.preparing')}
             </Text>
             <Text variant="body" className="text-fg-secondary text-center">
-              {STAGE_LABEL[stage]}
+              {stage === 'bible' ? t('onboarding.stepBible') : stage === 'plan' ? t('onboarding.stepPlan') : stage === 'ai' ? t('onboarding.stepContent') : t('onboarding.prepared')}
             </Text>
           </>
         )}

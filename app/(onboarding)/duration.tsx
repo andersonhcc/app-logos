@@ -6,24 +6,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { DURATIONS, type Duration, type ThemeId } from '@/lib/themes';
+import { useI18n } from '@/lib/i18n';
 
 export default function DurationScreen() {
   const router = useRouter();
   const { theme } = useLocalSearchParams<{ theme: ThemeId }>();
   const [days, setDays] = useState<Duration | null>(null);
+  const { t } = useI18n();
 
   return (
     <SafeAreaView className="flex-1 bg-bg-base">
       <View className="flex-1 px-6 pt-6">
         <View className="gap-2 mb-8">
           <Text variant="caption" className="text-fg-tertiary uppercase tracking-widest">
-            Passo 2 de 2
+            {t('onboarding.durationEyebrow')}
           </Text>
           <Text variant="title" className="text-fg">
-            Por quantos dias?
+            {t('onboarding.durationTitle')}
           </Text>
           <Text variant="body" className="text-fg-secondary">
-            Você pode pausar ou recomeçar quando quiser.
+            {t('onboarding.durationBody')}
           </Text>
         </View>
 
@@ -42,14 +44,14 @@ export default function DurationScreen() {
                 style={{ borderCurve: 'continuous' }}>
                 <View>
                   <Text variant="title" className="text-fg">
-                    {d} dias
+                    {t('onboarding.days', { count: d })}
                   </Text>
                   <Text variant="bodySmall" className="text-fg-secondary">
                     {d === 7
-                      ? 'Um começo leve.'
+                      ? t('onboarding.duration7')
                       : d === 14
-                        ? 'Tempo pra formar hábito.'
-                        : 'Imersão completa.'}
+                        ? t('onboarding.duration14')
+                        : t('onboarding.duration30')}
                   </Text>
                 </View>
               </Pressable>
@@ -61,11 +63,10 @@ export default function DurationScreen() {
 
         <View className="pb-4">
           <Button
-            label="Continuar"
+            label={t('common.continue')}
             disabled={!days}
             onPress={() =>
               days &&
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               (router.push as any)({
                 pathname: '/(onboarding)/notification',
                 params: { theme, days: String(days) },

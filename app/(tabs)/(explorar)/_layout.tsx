@@ -1,6 +1,8 @@
 import { Stack } from 'expo-router/stack';
+import { useI18n } from '@/lib/i18n';
 
 export default function ExplorarLayout() {
+  const { t } = useI18n();
   return (
     <Stack
       screenOptions={{
@@ -15,11 +17,7 @@ export default function ExplorarLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Explorar',
-          headerSearchBarOptions: {
-            placeholder: 'Buscar versículos, livros…',
-            hideWhenScrolling: false,
-          },
+          title: t('tabs.explore'),
         }}
       />
     </Stack>

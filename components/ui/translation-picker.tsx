@@ -1,6 +1,8 @@
 import * as Haptics from 'expo-haptics';
 import { ActionSheetIOS, Pressable, View } from 'react-native';
 
+import { useI18n } from '@/lib/i18n';
+
 import { Text } from './text';
 
 const OPTIONS = [
@@ -12,28 +14,22 @@ const OPTIONS = [
 
 export type TranslationCode = (typeof OPTIONS)[number]['value'];
 
-type Props = {
-  value: TranslationCode;
-  onChange: (next: TranslationCode) => void;
-};
+type Props = { value: TranslationCode; onChange: (next: TranslationCode) => void };
 
 export function TranslationPicker({ value, onChange }: Props) {
-  const current = OPTIONS.find((o) => o.value === value)!;
+  const current = OPTIONS.find((option) => option.value === value)!;
+  const { locale, t } = useI18n();
 
   const open = () => {
-    if (process.env.EXPO_OS === 'ios') {
-      Haptics.selectionAsync();
-    }
+    if (process.env.EXPO_OS === 'ios') Haptics.selectionAsync();
     ActionSheetIOS.showActionSheetWithOptions(
       {
-        title: 'Escolha a tradução',
-        options: [...OPTIONS.map((o) => o.label), 'Cancelar'],
+        title: locale === 'en' ? 'Choose a translation' : 'Escolha a tradução',
+        options: [...OPTIONS.map((option) => option.label), t('common.cancel')],
         cancelButtonIndex: OPTIONS.length,
         userInterfaceStyle: 'light',
       },
-      (idx) => {
-        if (idx >= 0 && idx < OPTIONS.length) onChange(OPTIONS[idx].value);
-      }
+      (index) => { if (index >= 0 && index < OPTIONS.length) onChange(OPTIONS[index].value); },
     );
   };
 
@@ -41,15 +37,11 @@ export function TranslationPicker({ value, onChange }: Props) {
     <Pressable onPress={open} className="flex-row items-center justify-between py-2">
       <View className="gap-0.5">
         <Text variant="caption" className="text-fg-tertiary uppercase tracking-widest">
-          Tradução
+          {locale === 'en' ? 'Translation' : 'Tradução'}
         </Text>
-        <Text variant="body" className="text-fg">
-          {current.label}
-        </Text>
+        <Text variant="body" className="text-fg">{current.label}</Text>
       </View>
-      <Text variant="body" className="text-brand">
-        Trocar
-      </Text>
+      <Text variant="body" className="text-brand">{t('common.change')}</Text>
     </Pressable>
   );
 }
