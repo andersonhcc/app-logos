@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { BOOK_BY_SLUG } from './bible-books';
+import type { SupportedLocale } from './i18n';
 import { invokeFunction } from './supabase';
 
 export type GeneratedDay = {
@@ -22,7 +23,7 @@ export type StoredPassage = {
 
 type ApiResponse = { days: GeneratedDay[] };
 
-export async function generatePlan(input: { theme: string; days: number }) {
+export async function generatePlan(input: { theme: string; days: number; locale: SupportedLocale }) {
   return invokeFunction<typeof input, ApiResponse>('generate-plan', input);
 }
 

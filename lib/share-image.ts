@@ -2,6 +2,7 @@ import * as Sharing from 'expo-sharing';
 import type { RefObject } from 'react';
 import type { View } from 'react-native';
 import { captureRef } from 'react-native-view-shot';
+import { translate } from './i18n';
 
 export async function shareCardImage(ref: RefObject<View | null>) {
   if (!ref.current) throw new Error('Share card not mounted');
@@ -17,12 +18,12 @@ export async function shareCardImage(ref: RefObject<View | null>) {
 
   const available = await Sharing.isAvailableAsync();
   if (!available) {
-    throw new Error('Compartilhamento indisponível neste dispositivo');
+    throw new Error(translate('share.unavailable'));
   }
 
   await Sharing.shareAsync(uri, {
     mimeType: 'image/png',
-    dialogTitle: 'Compartilhar reflexão',
+    dialogTitle: translate('share.dialog'),
     UTI: 'public.png',
   });
 }

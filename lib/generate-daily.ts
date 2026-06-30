@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import { invokeFunction } from './supabase';
+import type { SupportedLocale } from './i18n';
 
 export type DailyContent = {
   reflection: string;
@@ -13,6 +14,7 @@ type Input = {
   passageText: string;
   day: number;
   totalDays: number;
+  locale: SupportedLocale;
 };
 
 export async function generateDaily(input: Input) {

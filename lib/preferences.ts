@@ -11,6 +11,9 @@ export const PREF_KEYS = {
   hasOnboarded: 'hasOnboarded',
   activePlanId: 'activePlanId',
   lastTranslation: 'lastTranslation',
+  locale: 'locale',
+  remoteProcessingAcknowledged: 'remoteProcessingAcknowledged',
+  reviewAttemptedVersion: 'reviewAttemptedVersion',
 } as const;
 
 export function useHasOnboarded() {

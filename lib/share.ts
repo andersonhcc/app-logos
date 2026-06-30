@@ -2,6 +2,7 @@ import { Share } from 'react-native';
 
 import { formatReference, type Passage } from './bible';
 import type { ThemeDef } from './themes';
+import type { SupportedLocale } from './i18n';
 
 const TAGLINE = 'via Logos AI';
 
@@ -9,9 +10,10 @@ export type ShareInput = {
   passage: Passage;
   reflection?: string | null;
   theme?: ThemeDef | null;
+  locale?: SupportedLocale;
 };
 
-export function buildShareText({ passage, reflection, theme }: ShareInput): string {
+export function buildShareText({ passage, reflection, theme, locale = 'pt-BR' }: ShareInput): string {
   const reference = formatReference(passage);
   const verseText = passage.verses
     .map((v) => v.text.replace(/\s+/g, ' ').trim())
@@ -22,7 +24,7 @@ export function buildShareText({ passage, reflection, theme }: ShareInput): stri
   if (reflection?.trim()) {
     lines.push('', reflection.trim());
   } else if (theme) {
-    lines.push('', `Meditando sobre ${theme.label.toLowerCase()}.`);
+    lines.push('', locale === 'en' ? `Meditating on ${theme.label.toLowerCase()}.` : `Meditando sobre ${theme.label.toLowerCase()}.`);
   }
 
   lines.push('', TAGLINE);

@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { prefs, storage } from './preferences';
+import { translate } from './i18n';
 
 const KEY_NOTIFICATION_ID = 'notification.id';
 const KEY_NOTIFICATION_HOUR = 'notification.hour';
@@ -36,7 +37,7 @@ export async function scheduleDailyReminder(hour: number, minute: number) {
 
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('daily-devotional', {
-      name: 'Lembrete diário',
+      name: translate('notification.channel'),
       importance: Notifications.AndroidImportance.HIGH,
       sound: 'default',
     });
@@ -44,8 +45,8 @@ export async function scheduleDailyReminder(hour: number, minute: number) {
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Sua leitura de hoje',
-      body: 'Reserve um momento com a Palavra.',
+      title: translate('notification.title'),
+      body: translate('notification.body'),
       sound: 'default',
     },
     trigger: {
@@ -80,11 +81,17 @@ export function getScheduledTime(): { hour: number; minute: number } | null {
   return { hour, minute };
 }
 
+export async function rescheduleDailyReminder() {
+  const time = getScheduledTime();
+  if (time) await scheduleDailyReminder(time.hour, time.minute);
+}
+
 export const notifications = {
   request: requestPermission,
   schedule: scheduleDailyReminder,
   cancel: cancelDailyReminder,
   getTime: getScheduledTime,
+  reschedule: rescheduleDailyReminder,
 };
 
 // Re-export so callers don't depend on `preferences` directly here

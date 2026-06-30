@@ -38,7 +38,7 @@ export function useActivePlan() {
       setState({ loading: false, plan: null, theme: null, dayRecord: null, passage: null });
       return;
     }
-    const theme = getTheme(plan.theme) ?? null;
+    const theme = getTheme(plan.theme, plan.locale) ?? null;
     const dayRecord = (await getPlanDay(db, plan.id, plan.current_day)) ?? null;
 
     let ref: PassageRef | null = null;
@@ -58,7 +58,7 @@ export function useActivePlan() {
     if (!ref && theme) {
       ref = passageForDay(theme.id, plan.current_day);
     }
-    const passage = ref ? await getPassage(db, ref) : null;
+    const passage = ref ? await getPassage(db, ref, plan.locale) : null;
     setState({ loading: false, plan, theme, dayRecord, passage });
   }, [db]);
 

@@ -1,6 +1,7 @@
 import type { SQLiteDatabase } from 'expo-sqlite';
 
 import type { ThemeId } from './themes';
+import type { SupportedLocale } from './i18n';
 
 export type PlanStatus = 'active' | 'completed' | 'abandoned';
 
@@ -11,6 +12,7 @@ export type Plan = {
   current_day: number;
   status: PlanStatus;
   created_at: number;
+  locale: SupportedLocale;
 };
 
 export type PlanDay = {
@@ -26,13 +28,14 @@ export type PlanDay = {
 
 export async function createPlan(
   db: SQLiteDatabase,
-  input: { theme: ThemeId; days: number }
+  input: { theme: ThemeId; days: number; locale: SupportedLocale }
 ): Promise<number> {
   const now = Date.now();
   const result = await db.runAsync(
-    'INSERT INTO plans (theme, days_count, created_at) VALUES (?, ?, ?)',
+    'INSERT INTO plans (theme, days_count, locale, created_at) VALUES (?, ?, ?, ?)',
     input.theme,
     input.days,
+    input.locale,
     now
   );
   return result.lastInsertRowId;
