@@ -50,6 +50,54 @@ const MIGRATIONS: ((db: SQLiteDatabase) => Promise<void>)[] = [
       );
     `);
   },
+  async (db) => {
+    await db.execAsync(`
+      ALTER TABLE plans ADD COLUMN locale TEXT NOT NULL DEFAULT 'pt-BR';
+      DROP TABLE bible_verses;
+      DROP TABLE bible_books;
+      DROP TABLE bible_meta;
+      CREATE TABLE bible_books (
+        locale TEXT NOT NULL,
+        id INTEGER NOT NULL,
+        slug TEXT NOT NULL,
+        abbrev TEXT NOT NULL,
+        name TEXT NOT NULL,
+        testament TEXT NOT NULL,
+        book_order INTEGER NOT NULL,
+        PRIMARY KEY (locale, id),
+        UNIQUE (locale, slug)
+      );
+      CREATE TABLE bible_verses (
+        locale TEXT NOT NULL,
+        book_id INTEGER NOT NULL,
+        chapter INTEGER NOT NULL,
+        verse INTEGER NOT NULL,
+        text TEXT NOT NULL,
+        PRIMARY KEY (locale, book_id, chapter, verse),
+        FOREIGN KEY (locale, book_id) REFERENCES bible_books(locale, id)
+      );
+      CREATE TABLE bible_meta (
+        key TEXT PRIMARY KEY,
+        value TEXT NOT NULL
+      );
+    `);
+  },
+  async (db) => {
+    await db.execAsync(`
+      UPDATE plans
+      SET status = 'abandoned'
+      WHERE status = 'active'
+        AND id <> (
+          SELECT id FROM plans
+          WHERE status = 'active'
+          ORDER BY created_at DESC, id DESC
+          LIMIT 1
+        );
+      CREATE UNIQUE INDEX idx_plans_single_active
+      ON plans ((1))
+      WHERE status = 'active';
+    `);
+  },
 ];
 
 export async function migrate(db: SQLiteDatabase) {
