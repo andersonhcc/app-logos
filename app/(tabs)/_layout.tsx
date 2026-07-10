@@ -5,10 +5,11 @@ import { useI18n } from '@/lib/i18n';
 
 export default function TabLayout() {
   const c = useThemeColors();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
 
   return (
     <NativeTabs
+      key={locale}
       tintColor={c.brand.accent}
       minimizeBehavior="onScrollDown">
       <NativeTabs.Trigger name="(hoje)">

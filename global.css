@@ -17,18 +17,19 @@
     --border-strong: 138 127 112;
   }
 
-  .dark:root,
-  :root.dark {
-    --bg-base: 19 17 13;
-    --bg-elevated: 31 27 20;
-    --bg-sunken: 11 9 7;
-    --text-primary: 240 232 216;
-    --text-secondary: 168 155 130;
-    --text-tertiary: 138 127 112;
-    --text-inverse: 31 26 20;
-    --brand-primary: 127 160 212;
-    --brand-accent: 212 168 87;
-    --border: 46 41 32;
-    --border-strong: 90 80 70;
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-base: 19 17 13;
+      --bg-elevated: 37 33 25;
+      --bg-sunken: 11 9 7;
+      --text-primary: 240 232 216;
+      --text-secondary: 168 155 130;
+      --text-tertiary: 138 127 112;
+      --text-inverse: 31 26 20;
+      --brand-primary: 127 160 212;
+      --brand-accent: 212 168 87;
+      --border: 46 41 32;
+      --border-strong: 90 80 70;
+    }
   }
 }

@@ -4,10 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useAnalytics } from '@/lib/analytics';
+import { AnalyticsEvents } from '@/lib/analytics-events';
 import { useI18n } from '@/lib/i18n';
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const { track } = useAnalytics();
   const { t } = useI18n();
 
   return (
@@ -24,7 +27,13 @@ export default function WelcomeScreen() {
             {t('onboarding.intro')}
           </Text>
         </View>
-        <Button label={t('onboarding.start')} onPress={() => router.push('/(onboarding)/theme')} />
+        <Button
+          label={t('onboarding.start')}
+          onPress={() => {
+            track(AnalyticsEvents.ONBOARDING_STARTED);
+            router.push('/(onboarding)/appearance');
+          }}
+        />
       </View>
     </SafeAreaView>
   );

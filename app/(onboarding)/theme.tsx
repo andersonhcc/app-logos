@@ -1,17 +1,21 @@
 import { SymbolView } from 'expo-symbols';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useAnalytics } from '@/lib/analytics';
+import { AnalyticsEvents, normalizeAnalyticsFlow } from '@/lib/analytics-events';
 import { getTheme, THEMES, type ThemeId } from '@/lib/themes';
 import { useI18n } from '@/lib/i18n';
 import { useThemeColors } from '@/theme';
 
 export default function ThemeScreen() {
   const router = useRouter();
+  const { flow } = useLocalSearchParams<{ flow?: string }>();
+  const { track } = useAnalytics();
   const c = useThemeColors();
   const { locale, t: translate } = useI18n();
   const [selected, setSelected] = useState<ThemeId | null>(null);
@@ -68,13 +72,17 @@ export default function ThemeScreen() {
           <Button
             label={translate('common.continue')}
             disabled={!selected}
-            onPress={() =>
-              selected &&
+            onPress={() => {
+              if (!selected) return;
+              track(AnalyticsEvents.PLAN_THEME_SELECTED, {
+                theme_id: selected,
+                flow: normalizeAnalyticsFlow(flow),
+              });
               router.push({
                 pathname: '/(onboarding)/duration',
-                params: { theme: selected },
-              })
-            }
+                params: { theme: selected, flow },
+              });
+            }}
           />
         </View>
       </View>

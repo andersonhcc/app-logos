@@ -1,4 +1,5 @@
 import { useSQLiteContext } from 'expo-sqlite';
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActionSheetIOS,
@@ -15,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { GlassPill } from '@/components/ui/glass-pill';
 import { Text } from '@/components/ui/text';
 import { useActivePlan } from '@/hooks/use-active-plan';
+import { useAnalytics } from '@/lib/analytics';
+import { AnalyticsEvents, type ShareType } from '@/lib/analytics-events';
 import { formatReference } from '@/lib/bible';
 import { generateDaily, saveDailyContent } from '@/lib/generate-daily';
 import { shareReflection } from '@/lib/share';
@@ -24,10 +27,12 @@ import { useBibleBootstrap } from '@/lib/use-bible-bootstrap';
 import { useThemeColors } from '@/theme';
 import { useI18n } from '@/lib/i18n';
 import { requestReviewAfterCompletedReading } from '@/lib/store-review';
+import { syncDailyVerseWidget } from '@/lib/daily-verse-widget';
 
 export default function HojeScreen() {
   const c = useThemeColors();
   const db = useSQLiteContext();
+  const { track } = useAnalytics();
   const { locale, t } = useI18n();
   const { ready: bibleReady } = useBibleBootstrap();
   const { loading, plan, theme, dayRecord, passage, completeToday, reload } =
@@ -38,10 +43,16 @@ export default function HojeScreen() {
   const [genError, setGenError] = useState<string | null>(null);
   const [reportState, setReportState] = useState<'idle' | 'sending' | 'sent'>('idle');
   const generatingFor = useRef<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     setReportState('idle');
   }, [plan?.current_day, plan?.id]);
+
+  useEffect(() => {
+    if (!bibleReady) return;
+    void syncDailyVerseWidget(db);
+  }, [bibleReady, db, dayRecord?.completed_at, locale, plan?.current_day, plan?.id]);
 
   // Auto-generate reflection + prayer when missing
   useEffect(() => {
@@ -55,6 +66,10 @@ export default function HojeScreen() {
     (async () => {
       setGenState('loading');
       setGenError(null);
+      track(AnalyticsEvents.DAILY_CONTENT_GENERATION_STARTED, {
+        plan_id: String(plan.id),
+        day_number: plan.current_day,
+      });
       try {
         const content = await generateDaily({
           theme: theme.label,
@@ -67,26 +82,43 @@ export default function HojeScreen() {
         await saveDailyContent(db, plan.id, plan.current_day, content);
         await reload();
         setGenState('idle');
+        track(AnalyticsEvents.DAILY_CONTENT_GENERATION_SUCCEEDED, {
+          plan_id: String(plan.id),
+          day_number: plan.current_day,
+        });
       } catch (e) {
         generatingFor.current = null;
         setGenState('error');
+        track(AnalyticsEvents.DAILY_CONTENT_GENERATION_FAILED, {
+          plan_id: String(plan.id),
+          day_number: plan.current_day,
+          error_type: e instanceof Error && e.name ? e.name : 'unknown',
+        });
         setGenError(e instanceof Error ? e.message : String(e));
       }
     })();
-  }, [db, dayRecord, passage, plan, reload, theme]);
+  }, [db, dayRecord, passage, plan, reload, theme, track]);
 
   const onSharePress = () => {
     if (!passage) return;
     const reflection = dayRecord?.reflection;
 
-    const shareImage = async () => {
+    const shareWithTracking = async (shareType: ShareType, action: () => Promise<void>) => {
+      track(AnalyticsEvents.DAILY_SHARE_STARTED, { share_type: shareType });
       try {
-        await shareCardImage(cardRef);
+        await action();
+        track(AnalyticsEvents.DAILY_SHARE_COMPLETED, { share_type: shareType });
       } catch (e) {
+        track(AnalyticsEvents.DAILY_SHARE_FAILED, {
+          share_type: shareType,
+          error_type: e instanceof Error && e.name ? e.name : 'unknown',
+        });
         Alert.alert(t('today.shareError'), e instanceof Error ? e.message : String(e));
       }
     };
-    const shareText = () => shareReflection({ passage, reflection, theme, locale: plan?.locale ?? locale });
+    const shareImage = () => shareWithTracking('image', () => shareCardImage(cardRef));
+    const shareText = () =>
+      shareWithTracking('text', () => shareReflection({ passage, reflection, theme, locale: plan?.locale ?? locale }));
 
     if (Platform.OS === 'ios') {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -95,12 +127,12 @@ export default function HojeScreen() {
           cancelButtonIndex: 0,
         },
         (i) => {
-          if (i === 1) shareImage();
-          else if (i === 2) shareText();
+          if (i === 1) void shareImage();
+          else if (i === 2) void shareText();
         }
       );
     } else {
-      shareImage();
+      void shareImage();
     }
   };
 
@@ -108,6 +140,7 @@ export default function HojeScreen() {
     if (!plan || !theme || !passage || !dayRecord?.reflection || !dayRecord.prayer) return;
 
     setReportState('sending');
+    track(AnalyticsEvents.CONTENT_REPORT_SUBMITTED);
     try {
       await reportGeneratedContent({
         theme: theme.label,
@@ -119,14 +152,17 @@ export default function HojeScreen() {
         locale: plan.locale,
       });
       setReportState('sent');
+      track(AnalyticsEvents.CONTENT_REPORT_SUCCEEDED);
       Alert.alert(t('today.thanks'), t('today.reportSuccess'));
     } catch {
       setReportState('idle');
+      track(AnalyticsEvents.CONTENT_REPORT_FAILED);
       Alert.alert(t('today.submitError'), t('today.tryAgain'));
     }
   };
 
   const onReportPress = () => {
+    track(AnalyticsEvents.CONTENT_REPORT_OPENED);
     Alert.alert(
       t('today.reportTitle'),
       t('today.reportBody'),
@@ -151,9 +187,16 @@ export default function HojeScreen() {
         <Text variant="title" className="text-fg text-center mb-2">
           {t('today.noPlan')}
         </Text>
-        <Text variant="body" className="text-fg-secondary text-center">
+        <Text variant="body" className="text-fg-secondary text-center mb-6">
           {t('today.createPlan')}
         </Text>
+        <Button
+          label={t('plans.create')}
+          onPress={() => {
+            track(AnalyticsEvents.NEW_PLAN_STARTED, { source: 'today_empty_state' });
+            router.push('/(onboarding)/theme?flow=new-plan');
+          }}
+        />
       </View>
     );
   }
@@ -162,10 +205,42 @@ export default function HojeScreen() {
   const isLastDay = plan.current_day >= plan.days_count && isCompleted;
   const isGenerating = genState === 'loading';
   const onCompleteToday = async () => {
+    const completedPlan = plan;
     await completeToday();
+    track(AnalyticsEvents.DAILY_READING_COMPLETED, {
+      plan_id: String(completedPlan.id),
+      day_number: completedPlan.current_day,
+      days_count: completedPlan.days_count,
+      is_last_day: completedPlan.current_day >= completedPlan.days_count,
+    });
+    if (completedPlan.current_day >= completedPlan.days_count) {
+      track(AnalyticsEvents.PLAN_COMPLETED, {
+        plan_id: String(completedPlan.id),
+        days_count: completedPlan.days_count,
+      });
+    }
     if (genState === 'idle') {
       void requestReviewAfterCompletedReading();
     }
+  };
+
+  const startNewPlan = (source: string) => {
+    track(AnalyticsEvents.NEW_PLAN_STARTED, { source });
+    router.push('/(onboarding)/theme?flow=new-plan');
+  };
+
+  const confirmPlanChange = () => {
+    Alert.alert(t('plans.changeTitle'), t('plans.changeBody'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('plans.change'),
+        style: 'destructive',
+        onPress: () => {
+          track(AnalyticsEvents.PLAN_CHANGE_CONFIRMED, { source: 'today' });
+          startNewPlan('plan_change');
+        },
+      },
+    ]);
   };
 
   return (
@@ -284,10 +359,21 @@ export default function HojeScreen() {
             </Text>
           )}
           {isLastDay && (
-            <Text variant="title" className="text-fg text-center">
-              {t('today.planDone')}
-            </Text>
+            <>
+              <Text variant="title" className="text-fg text-center">
+                {t('today.planDone')}
+              </Text>
+              <Button label={t('plans.createAnother')} onPress={() => startNewPlan('plan_completed')} />
+            </>
           )}
+          {!isLastDay && (
+            <Button label={t('plans.change')} variant="ghost" onPress={confirmPlanChange} />
+          )}
+          <Button
+            label={t('plans.myPlans')}
+            variant="ghost"
+            onPress={() => router.push('/plans')}
+          />
         </View>
       </ScrollView>
 

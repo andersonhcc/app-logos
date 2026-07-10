@@ -1,18 +1,22 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, View } from 'react-native';
+import { Alert, Linking, Pressable, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useAnalytics } from '@/lib/analytics';
+import { AnalyticsEvents } from '@/lib/analytics-events';
 import type { ThemeId } from '@/lib/themes';
 import { useI18n } from '@/lib/i18n';
+import { notifications } from '@/lib/notifications';
 
 type Choice = { label: string; hour: number; minute: number };
 
 export default function NotificationScreen() {
   const router = useRouter();
   const { theme, days } = useLocalSearchParams<{ theme: ThemeId; days: string }>();
+  const { track } = useAnalytics();
   const { t } = useI18n();
   const times: Choice[] = [
     { label: `06:30 — ${t('onboarding.morning')}`, hour: 6, minute: 30 },
@@ -22,6 +26,7 @@ export default function NotificationScreen() {
     { label: `22:00 — ${t('onboarding.evening')}`, hour: 22, minute: 0 },
   ];
   const [selected, setSelected] = useState<Choice | null>(times[1]);
+  const [requesting, setRequesting] = useState(false);
 
   const go = (notify: boolean) => {
     router.replace({
@@ -34,6 +39,31 @@ export default function NotificationScreen() {
         minute: selected ? String(selected.minute) : '',
       },
     });
+  };
+
+  const enableReminder = async () => {
+    setRequesting(true);
+    track(AnalyticsEvents.NOTIFICATION_PERMISSION_REQUESTED);
+    let result: Awaited<ReturnType<typeof notifications.request>>;
+    try {
+      result = await notifications.request();
+    } catch {
+      result = 'unavailable';
+    } finally {
+      setRequesting(false);
+    }
+    track(AnalyticsEvents.NOTIFICATION_PERMISSION_RESULT, { result });
+    if (result === 'granted') {
+      go(true);
+      return;
+    }
+
+    Alert.alert(t('notification.permissionTitle'), t(`notification.permission.${result}`), [
+      { text: t('notification.continueWithout'), onPress: () => go(false) },
+      ...(result === 'blocked'
+        ? [{ text: t('notification.openSettings'), onPress: () => void Linking.openSettings() }]
+        : []),
+    ]);
   };
 
   return (
@@ -57,7 +87,13 @@ export default function NotificationScreen() {
             return (
               <Pressable
                 key={time.label}
-                onPress={() => setSelected(time)}
+                onPress={() => {
+                  setSelected(time);
+                  track(AnalyticsEvents.NOTIFICATION_TIME_SELECTED, {
+                    hour: time.hour,
+                    minute: time.minute,
+                  });
+                }}
                 className={`rounded-2xl border px-5 py-4 ${
                   isSelected
                     ? 'bg-bg-elevated border-brand'
@@ -75,7 +111,11 @@ export default function NotificationScreen() {
         <View className="flex-1" />
 
         <View className="gap-2 pb-4">
-          <Button label={t('onboarding.enableReminder')} onPress={() => go(true)} />
+          <Button
+            label={requesting ? t('notification.requesting') : t('onboarding.enableReminder')}
+            disabled={requesting}
+            onPress={() => void enableReminder()}
+          />
           <Button label={t('onboarding.notNow')} variant="ghost" onPress={() => go(false)} />
         </View>
       </View>

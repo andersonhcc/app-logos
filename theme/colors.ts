@@ -72,7 +72,7 @@ export const colors = {
   dark: {
     bg: {
       base: palette.ink[900],
-      elevated: palette.ink[500],
+      elevated: '#252119',
       sunken: palette.ink[950],
     },
     text: {

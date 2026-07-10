@@ -5,12 +5,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
+import { useAnalytics } from '@/lib/analytics';
+import { AnalyticsEvents, normalizeAnalyticsFlow } from '@/lib/analytics-events';
 import { DURATIONS, type Duration, type ThemeId } from '@/lib/themes';
 import { useI18n } from '@/lib/i18n';
 
 export default function DurationScreen() {
   const router = useRouter();
-  const { theme } = useLocalSearchParams<{ theme: ThemeId }>();
+  const { theme, flow } = useLocalSearchParams<{ theme: ThemeId; flow?: string }>();
+  const { track } = useAnalytics();
   const [days, setDays] = useState<Duration | null>(null);
   const { t } = useI18n();
 
@@ -65,13 +68,22 @@ export default function DurationScreen() {
           <Button
             label={t('common.continue')}
             disabled={!days}
-            onPress={() =>
-              days &&
-              (router.push as any)({
-                pathname: '/(onboarding)/notification',
-                params: { theme, days: String(days) },
-              })
-            }
+            onPress={() => {
+              if (!days) return;
+              track(AnalyticsEvents.PLAN_DURATION_SELECTED, {
+                days_count: days,
+                flow: normalizeAnalyticsFlow(flow),
+              });
+              (router.push as any)(flow === 'new-plan'
+                ? {
+                    pathname: '/(onboarding)/done',
+                    params: { theme, days: String(days), notify: '0', flow },
+                  }
+                : {
+                    pathname: '/(onboarding)/notification',
+                    params: { theme, days: String(days) },
+                  });
+            }}
           />
         </View>
       </View>
