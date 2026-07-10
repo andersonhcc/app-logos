@@ -58,7 +58,7 @@ export function AnalyticsProvider({ children }: PropsWithChildren) {
         const useNative = false;
         const mixpanel = new Mixpanel(MIXPANEL_TOKEN, trackAutomaticEvents, useNative, AsyncStorage);
 
-        mixpanel.setLoggingEnabled(__DEV__);
+        mixpanel.setLoggingEnabled(false);
         await mixpanel.init(false);
         mixpanel.registerSuperProperties({
           app_version: Constants.expoConfig?.version,
