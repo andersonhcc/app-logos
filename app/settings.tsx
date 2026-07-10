@@ -1,12 +1,10 @@
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import * as Sentry from '@sentry/react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 import { useState } from 'react';
 import { Alert, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/ui/button';
 import { Text } from '@/components/ui/text';
 import { useAnalytics } from '@/lib/analytics';
 import { AnalyticsEvents } from '@/lib/analytics-events';
@@ -23,7 +21,7 @@ const THEME_PREFERENCES: ThemePreference[] = ['system', 'light', 'dark'];
 export default function SettingsScreen() {
   const router = useRouter();
   const db = useSQLiteContext();
-  const { registerSuperProperties, track, flush } = useAnalytics();
+  const { registerSuperProperties, track } = useAnalytics();
   const { locale, setLocale, t } = useI18n();
   const [reminder, setReminder] = useState<ReminderState>(() => notifications.getState());
   const [showIosPicker, setShowIosPicker] = useState(false);
@@ -97,19 +95,6 @@ export default function SettingsScreen() {
   const showWidgetInstructions = () => {
     track(AnalyticsEvents.WIDGET_INSTRUCTIONS_OPENED);
     Alert.alert(t('settings.widgetInstructionsTitle'), t('settings.widgetInstructions'));
-  };
-
-  const sendSentryTestEvent = () => {
-    Sentry.nativeCrash();
-  };
-
-  const sendMixpanelTestEvent = () => {
-    track(AnalyticsEvents.DEBUG_MIXPANEL_TEST, {
-      source: 'settings',
-      timestamp: new Date().toISOString(),
-    });
-    flush();
-    Alert.alert('Mixpanel', 'Evento de teste enviado.');
   };
 
   return (
@@ -213,18 +198,6 @@ export default function SettingsScreen() {
         }}>
           <Text variant="body" className="text-brand">{locale === 'en' ? 'Support' : 'Suporte'}</Text>
         </Pressable>}
-        {__DEV__ && (
-          <View className="gap-3 rounded-2xl border border-border bg-bg-elevated p-4">
-            <View className="gap-1">
-              <Text variant="subtitle">Debug telemetry</Text>
-              <Text variant="bodySmall" className="text-fg-secondary">
-                Envia eventos manuais para validar Sentry e Mixpanel.
-              </Text>
-            </View>
-            <Button label="Gerar crash Sentry" variant="secondary" onPress={sendSentryTestEvent} />
-            <Button label="Testar Mixpanel" variant="secondary" onPress={sendMixpanelTestEvent} />
-          </View>
-        )}
       </ScrollView>
     </SafeAreaView>
   );
