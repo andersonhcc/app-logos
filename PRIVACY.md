@@ -1,6 +1,6 @@
 # Política de Privacidade — Logos AI
 
-_Última atualização: 28 de junho de 2026._
+_Última atualização: 30 de junho de 2026._
 
 O Logos AI não exige conta, não exibe anúncios e não realiza rastreamento. Planos, progresso, preferências, passagens, reflexões e orações são armazenados localmente no dispositivo.
 
@@ -10,7 +10,7 @@ Para gerar planos, reflexões e orações, o aplicativo envia ao Supabase e à O
 
 ## Denúncias de conteúdo
 
-Quando o usuário sinaliza um conteúdo, a reflexão, a oração e o contexto da leitura são enviados e armazenados para análise. Esses registros são usados exclusivamente para segurança e melhoria da qualidade, pelo tempo necessário à revisão.
+Quando o usuário sinaliza um conteúdo, a reflexão, a oração e o contexto da leitura são enviados ao Supabase e armazenados exclusivamente para análise de segurança e melhoria da qualidade por no máximo 180 dias. Depois desse prazo, uma rotina automática os exclui.
 
 ## Notificações e compartilhamento
 
@@ -18,7 +18,7 @@ Lembretes são agendados localmente após autorização. Textos ou imagens são 
 
 ## Uso, retenção e exclusão
 
-Os dados são usados apenas para operar o aplicativo, gerar o conteúdo solicitado, prevenir abuso e revisar denúncias. Eles não são vendidos nem utilizados para publicidade. Dados locais podem ser apagados ao desinstalar o aplicativo ou limpar seus dados nas configurações do sistema. Registros remotos são mantidos somente pelo tempo operacional ou de segurança necessário.
+Os dados são usados apenas para operar o aplicativo, gerar o conteúdo solicitado, prevenir abuso e revisar denúncias. Eles não são vendidos nem utilizados para publicidade. Antes do primeiro processamento remoto, o app informa quais dados serão enviados. O usuário pode recusar e não criar o plano personalizado, ou retirar sua escolha limpando os dados do app ou desinstalando-o. Dados locais são excluídos da mesma forma. Para pedir a exclusão antecipada de uma denúncia, o usuário deve contatar o suporte e informar a data aproximada e a referência da leitura.
 
 ## Contato
 

@@ -2,14 +2,14 @@
   "expo": {
     "name": "Logos AI",
     "slug": "logos-ai",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/app-icon.icon/Assets/icon.png",
     "scheme": "logosai",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "com.logosai.app",
       "icon": "./assets/app-icon.icon",
       "infoPlist": {
@@ -37,8 +37,14 @@
         "expo-localization",
         {
           "supportedLocales": {
-            "ios": ["pt-BR", "en"],
-            "android": ["pt-BR", "en"]
+            "ios": [
+              "pt-BR",
+              "en"
+            ],
+            "android": [
+              "pt-BR",
+              "en"
+            ]
           }
         }
       ],
@@ -61,6 +67,38 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#1C2D4A"
+        }
+      ],
+      [
+        "@bittingz/expo-widgets",
+        {
+          "ios": {
+            "src": "./widgets/ios",
+            "deploymentTarget": "16.4",
+            "devTeamId": "\"\"",
+            "mode": "production",
+            "moduleDependencies": [],
+            "useLiveActivities": false,
+            "frequentUpdates": false,
+            "xcode": {
+              "widgetBundleIdentifier": "com.logosai.app.DailyVerseWidget",
+              "appGroupId": "group.com.logosai.app.expowidgets",
+              "configOverrides": {
+                "ASSETCATALOG_COMPILER_APPICON_NAME": "\"\""
+              },
+              "appExtAPI": false
+            }
+          }
+        }
+      ],
+      "@react-native-community/datetimepicker",
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "react-native",
+          "organization": "hcstack",
+          "useNativeInit": true
         }
       ]
     ],

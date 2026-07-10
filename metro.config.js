@@ -1,6 +1,16 @@
-const { getDefaultConfig } = require('expo/metro-config');
 const { withNativeWind } = require('nativewind/metro');
+const {
+  getSentryExpoConfig,
+} = require('@sentry/react-native/metro');
 
-const config = getDefaultConfig(__dirname);
+const config = getSentryExpoConfig(__dirname);
+
+config.resolver.assetExts.push('wasm');
+
+config.server.enhanceMiddleware = (middleware) => (req, res, next) => {
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  return middleware(req, res, next);
+};
 
 module.exports = withNativeWind(config, { input: './global.css' });

@@ -40,6 +40,20 @@ Os textos bíblicos são armazenados no próprio dispositivo com SQLite. Isso ma
 - Supabase Edge Functions
 - Expo Notifications
 
+## Requisitos de produção
+
+Exports de produção exigem `EXPO_PUBLIC_PRIVACY_POLICY_URL` e
+`EXPO_PUBLIC_SUPPORT_URL`. Antes da distribuição, aplique o backend com:
+
+```bash
+npx supabase db push --linked
+npx supabase functions deploy report-content
+```
+
+O perfil EAS de produção está fixado no Xcode 26. Para um perfil dedicado ao
+TestFlight, configure `extra.isTestFlight` como `true` para desativar
+explicitamente a solicitação de avaliação.
+
 ## Executando localmente
 
 ### Pré-requisitos
