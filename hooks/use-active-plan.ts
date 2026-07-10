@@ -6,11 +6,14 @@ import { passageForDay, type PassageRef } from '@/lib/curated-passages';
 import type { StoredPassage } from '@/lib/generate-plan';
 import {
   getActivePlan,
+  getLatestPlan,
+  getPlan,
   getPlanDay,
   markDayCompleted,
   type Plan,
   type PlanDay,
 } from '@/lib/plans';
+import { prefs } from '@/lib/preferences';
 import { getTheme, type ThemeDef } from '@/lib/themes';
 
 export type ActivePlanState = {
@@ -33,7 +36,10 @@ export function useActivePlan() {
 
   const reload = useCallback(async () => {
     setState((s) => ({ ...s, loading: true }));
-    const plan = await getActivePlan(db);
+    const selectedId = prefs.getActivePlanId();
+    const selectedPlan = selectedId ? await getPlan(db, selectedId) : null;
+    const selectablePlan = selectedPlan?.status === 'abandoned' ? null : selectedPlan;
+    const plan = selectablePlan ?? await getActivePlan(db) ?? await getLatestPlan(db);
     if (!plan) {
       setState({ loading: false, plan: null, theme: null, dayRecord: null, passage: null });
       return;
