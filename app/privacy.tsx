@@ -2,6 +2,8 @@ import { Stack } from 'expo-router';
 import { Linking, Pressable, ScrollView, View } from 'react-native';
 
 import { Text } from '@/components/ui/text';
+import { useAnalytics } from '@/lib/analytics';
+import { AnalyticsEvents } from '@/lib/analytics-events';
 import { useI18n } from '@/lib/i18n';
 
 const PRIVACY_EMAIL = process.env.EXPO_PUBLIC_PRIVACY_EMAIL?.trim();
@@ -25,6 +27,7 @@ function Section({ title, children }: SectionProps) {
 }
 
 export default function PrivacyScreen() {
+  const { track } = useAnalytics();
   const { locale, t } = useI18n();
   const en = locale === 'en';
   return (
@@ -39,12 +42,12 @@ export default function PrivacyScreen() {
             {t('privacy.title')}
           </Text>
           <Text variant="caption" className="text-fg-tertiary">
-            {en ? 'Updated June 28, 2026' : 'Atualizada em 28 de junho de 2026'}
+            {en ? 'Updated July 10, 2026' : 'Atualizada em 10 de julho de 2026'}
           </Text>
         </View>
 
         <Section title={en ? 'Summary' : 'Resumo'}>
-          {en ? 'Logos AI does not require an account, display ads, or track you. Your plans and progress are stored on your device. Some data is processed remotely only to generate the content you request.' : 'O Logos AI não exige conta, não exibe anúncios e não realiza rastreamento. Seus planos e progresso ficam armazenados no dispositivo. Alguns dados são processados remotamente somente para gerar o conteúdo solicitado.'}
+          {en ? 'Logos AI does not require an account or display ads. Your plans and progress are stored on your device. Some data is processed remotely only to generate the content you request, and we use limited anonymous product analytics to understand app usage and improve the experience.' : 'O Logos AI não exige conta nem exibe anúncios. Seus planos e progresso ficam armazenados no dispositivo. Alguns dados são processados remotamente somente para gerar o conteúdo solicitado, e usamos analytics anônimo limitado para entender o uso do app e melhorar a experiência.'}
         </Section>
 
         <Section title={en ? 'Data on your device' : 'Dados no dispositivo'}>
@@ -53,6 +56,10 @@ export default function PrivacyScreen() {
 
         <Section title={en ? 'AI-generated content' : 'Geração com inteligência artificial'}>
           {en ? 'To create plans, reflections, and prayers, we send Supabase and OpenAI the selected theme, passage reference and text, plan day, duration, and language. We do not send your name, email, contacts, location, or advertising identifiers. Providers may retain technical records under their own policies.' : 'Para criar planos, reflexões e orações, enviamos ao Supabase e à OpenAI o tema selecionado, a referência e o texto da passagem, além do dia, da duração e do idioma do plano. Não enviamos nome, e-mail, contatos, localização ou identificadores de publicidade. Os provedores podem manter registros técnicos conforme suas próprias políticas.'}
+        </Section>
+
+        <Section title={en ? 'Anonymous product analytics' : 'Analytics anônimo de produto'}>
+          {en ? 'We use Mixpanel to collect minimal anonymous product analytics, such as screen views, onboarding progress, plan creation, reading completion, sharing actions, search query length, result count, language, platform, app version, theme preference, and whether onboarding was completed. We do not send Bible text, reflections, prayers, literal search terms, name, email, precise location, contacts, or advertising identifiers. Analytics uses an anonymous app-generated identifier from the analytics provider.' : 'Usamos Mixpanel para coletar analytics anônimo mínimo de produto, como telas acessadas, progresso do onboarding, criação de plano, conclusão de leitura, ações de compartilhamento, tamanho da busca, quantidade de resultados, idioma, plataforma, versão do app, preferência de tema e se o onboarding foi concluído. Não enviamos texto bíblico, reflexões, orações, termos literais de busca, nome, e-mail, localização precisa, contatos ou identificadores de publicidade. O analytics usa um identificador anônimo gerado pelo provedor de analytics para o app.'}
         </Section>
 
         <Section title={en ? 'Content reports' : 'Denúncias de conteúdo'}>
@@ -68,7 +75,7 @@ export default function PrivacyScreen() {
         </Section>
 
         <Section title={en ? 'Your choices and deletion' : 'Suas escolhas e exclusão'}>
-          {en ? 'Remote processing is explained before its first use. You may decline it and not create a personalized plan. You can withdraw your choice by clearing the app data or uninstalling it. To request early deletion of a content report, contact support and provide the approximate submission date and reading reference.' : 'O processamento remoto é informado antes do primeiro uso. Você pode recusá-lo e não criar um plano personalizado. Para retirar sua escolha, apague os dados do app ou desinstale-o. Para solicitar a exclusão antecipada de uma denúncia, contate o suporte e informe a data aproximada e a referência da leitura.'}
+          {en ? 'Remote processing is explained before its first use. You may decline it and not create a personalized plan. You can remove local app data and reset the anonymous analytics identifier by clearing the app data in system settings or uninstalling the app. To request early deletion of a content report, contact support and provide the approximate submission date and reading reference.' : 'O processamento remoto é informado antes do primeiro uso. Você pode recusá-lo e não criar um plano personalizado. Você pode remover dados locais do app e redefinir o identificador anônimo de analytics ao apagar os dados do app nas configurações do sistema ou desinstalá-lo. Para solicitar a exclusão antecipada de uma denúncia, contate o suporte e informe a data aproximada e a referência da leitura.'}
         </Section>
 
         <Section title={en ? 'Contact' : 'Contato'}>
@@ -79,7 +86,10 @@ export default function PrivacyScreen() {
           <Pressable
             accessibilityRole="link"
             hitSlop={12}
-            onPress={() => Linking.openURL(`mailto:${PRIVACY_EMAIL}`)}
+            onPress={() => {
+              track(AnalyticsEvents.EXTERNAL_LINK_OPENED, { link_type: 'privacy_email' });
+              void Linking.openURL(`mailto:${PRIVACY_EMAIL}`);
+            }}
             className="self-start py-2">
             <Text variant="bodySmall" className="text-brand">
               {PRIVACY_EMAIL}
