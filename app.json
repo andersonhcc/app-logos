@@ -98,7 +98,7 @@
           "url": "https://sentry.io/",
           "project": "app-logos",
           "organization": "hcstack",
-          "useNativeInit": true
+          "useNativeInit": false
         }
       ]
     ],
