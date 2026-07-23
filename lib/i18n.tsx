@@ -62,6 +62,11 @@ const translations = {
       permissionTitle: 'Notification permission', continueWithout: 'Continue without reminder', openSettings: 'Open settings',
       permission: { denied: 'Permission was denied. You can enable the reminder later in Settings.', blocked: 'Notifications are blocked. Open system settings to enable them.', unavailable: 'Notifications require a physical device.' },
     },
+    streak: {
+      dayLabel: 'day streak', daysLabel: 'day streak', keepGoing: 'Come back tomorrow to keep your streak alive.',
+      milestone3: 'Three days walking in the Word!', milestone7: 'A full week with the Word!',
+      milestone14: 'Two weeks of faithfulness!', milestone30: 'Thirty days! The Word became a habit.',
+    },
     share: { devotional: 'daily devotional', dialog: 'Share reflection', unavailable: 'Sharing is unavailable on this device' },
     bible: { loadError: 'The Bible data is unavailable. Run `npm run fetch:bible` and reopen the app.' },
     privacy: { title: 'Privacy Policy' },
@@ -114,6 +119,11 @@ const translations = {
       channel: 'Lembrete diário', title: 'Sua leitura de hoje', body: 'Reserve um momento com a Palavra.', requesting: 'Solicitando permissão…',
       permissionTitle: 'Permissão de notificações', continueWithout: 'Continuar sem lembrete', openSettings: 'Abrir configurações',
       permission: { denied: 'A permissão foi negada. Você pode ativar o lembrete depois nas Configurações.', blocked: 'As notificações estão bloqueadas. Abra as configurações do sistema para ativá-las.', unavailable: 'As notificações exigem um dispositivo físico.' },
+    },
+    streak: {
+      dayLabel: 'dia seguido', daysLabel: 'dias seguidos', keepGoing: 'Volte amanhã para manter sua sequência viva.',
+      milestone3: 'Três dias caminhando na Palavra!', milestone7: 'Uma semana inteira com a Palavra!',
+      milestone14: 'Duas semanas de constância!', milestone30: 'Trinta dias! A Palavra virou hábito.',
     },
     share: { devotional: 'devocional diário', dialog: 'Compartilhar reflexão', unavailable: 'Compartilhamento indisponível neste dispositivo' },
     bible: { loadError: 'Os dados da Bíblia não estão disponíveis. Rode `npm run fetch:bible` e reabra o app.' },
