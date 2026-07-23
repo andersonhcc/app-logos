@@ -30,6 +30,7 @@ export const AnalyticsEvents = {
   CONTENT_REPORT_SUCCEEDED: 'content_report_succeeded',
   CONTENT_REPORT_FAILED: 'content_report_failed',
   PLAN_COMPLETED: 'plan_completed',
+  STREAK_CELEBRATION_SHOWN: 'streak_celebration_shown',
   EXPLORE_SEARCH_PERFORMED: 'explore_search_performed',
   SEARCH_RESULT_OPENED: 'search_result_opened',
   COLLECTION_OPENED: 'collection_opened',

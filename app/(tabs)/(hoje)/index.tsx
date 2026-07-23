@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import { ShareCard } from '@/components/share-card';
+import { StreakCelebrationModal } from '@/components/streak-celebration';
 import { Button } from '@/components/ui/button';
 import { GlassPill } from '@/components/ui/glass-pill';
 import { Text } from '@/components/ui/text';
@@ -27,6 +28,11 @@ import { useBibleBootstrap } from '@/lib/use-bible-bootstrap';
 import { useThemeColors } from '@/theme';
 import { useI18n } from '@/lib/i18n';
 import { requestReviewAfterCompletedReading } from '@/lib/store-review';
+import {
+  getCurrentStreak,
+  getStreakCelebration,
+  type StreakCelebration,
+} from '@/lib/streak';
 import { syncDailyVerseWidget } from '@/lib/daily-verse-widget';
 
 export default function HojeScreen() {
@@ -42,6 +48,8 @@ export default function HojeScreen() {
   const [genState, setGenState] = useState<'idle' | 'loading' | 'error'>('idle');
   const [genError, setGenError] = useState<string | null>(null);
   const [reportState, setReportState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [streakCount, setStreakCount] = useState(0);
+  const [celebration, setCelebration] = useState<StreakCelebration | null>(null);
   const generatingFor = useRef<string | null>(null);
   const router = useRouter();
 
@@ -53,6 +61,16 @@ export default function HojeScreen() {
     if (!bibleReady) return;
     void syncDailyVerseWidget(db);
   }, [bibleReady, db, dayRecord?.completed_at, locale, plan?.current_day, plan?.id]);
+
+  useEffect(() => {
+    let active = true;
+    void getCurrentStreak(db).then((value) => {
+      if (active) setStreakCount(value);
+    });
+    return () => {
+      active = false;
+    };
+  }, [db, dayRecord?.completed_at]);
 
   // Auto-generate reflection + prayer when missing
   useEffect(() => {
@@ -219,6 +237,17 @@ export default function HojeScreen() {
         days_count: completedPlan.days_count,
       });
     }
+    const celebrationData = await getStreakCelebration(db);
+    setStreakCount(celebrationData.streak);
+    setCelebration(celebrationData);
+    track(AnalyticsEvents.STREAK_CELEBRATION_SHOWN, {
+      streak_length: celebrationData.streak,
+      best_streak: celebrationData.best,
+    });
+  };
+
+  const onCelebrationClose = () => {
+    setCelebration(null);
     if (genState === 'idle') {
       void requestReviewAfterCompletedReading();
     }
@@ -254,7 +283,10 @@ export default function HojeScreen() {
             <Text variant="caption" className="text-fg-tertiary uppercase tracking-widest">
               {theme.label} · {t('today.day', { day: plan.current_day, total: plan.days_count })}
             </Text>
-            {passage && <GlassPill label={formatReference(passage)} />}
+            <View className="flex-row items-center gap-2">
+              {streakCount > 0 && <GlassPill label={`🔥 ${streakCount}`} />}
+              {passage && <GlassPill label={formatReference(passage)} />}
+            </View>
           </View>
           {passage && passage.verses.length > 0 && (
             <Text variant="hero" className="text-fg">
@@ -376,6 +408,10 @@ export default function HojeScreen() {
           />
         </View>
       </ScrollView>
+
+      {celebration && (
+        <StreakCelebrationModal celebration={celebration} onClose={onCelebrationClose} />
+      )}
 
       {passage && (
         <View
